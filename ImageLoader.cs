@@ -11,6 +11,7 @@ public class ImageLoader : MonoBehaviour
     
     [SerializeField] public Image image;
     private Transform imageContainer;
+    public Image[] imageMas = new Image[66];
     public List<Image> imageList;
     private string imageLink = "http://data.ikppbb.com/test-task-unity-data/pics/";
     private int numberToCreate;
@@ -50,11 +51,18 @@ public class ImageLoader : MonoBehaviour
         //SceneManager.LoadScene("Photo");
     }
 
-    private IEnumerator LoadImageFromServer(){
+    private UnityWebRequest RequestServer(string ImgaeLink){
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageLink);
+        //yield return request.SendWebRequest(); 
+        return request;
+    }
+    private List<Image> LoadImageFromServer(){
         numberToCreate = 2;
         for(int i = 1; i <=numberToCreate; ++i ){
-            UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageLink + $"{i}.jpg");
-            yield return request.SendWebRequest();
+            //UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageLink + $"{i}.jpg");
+            //yield return request.SendWebRequest();
+            var request = RequestServer(imageLink + $"{i}.jpg");
+            request.SendWebRequest();
 
             if(request.isNetworkError || request.isHttpError){
                 Debug.Log("Произошла ошибка " + request.error);
@@ -78,7 +86,7 @@ public class ImageLoader : MonoBehaviour
             
             numberToCreate += 2;
         }
-        yield return imageList;
+        return imageList;
         
     }
 
