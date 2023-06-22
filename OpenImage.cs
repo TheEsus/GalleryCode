@@ -7,14 +7,17 @@ public class OpenImage : MonoBehaviour
 {
     public static int selectedImageIndex;
     public Image largeImage;
-    private List<Image> images;
 
     private void Start()
     {
-        //images = ImageLoader(); // Загружаем все изображения с сервера
-
         // Отображаем выбранное изображение
-        //ShowImage(selectedImageIndex);
+        ShowImage(selectedImageIndex);
 
+    }
+
+    public void ShowImage(int index)
+    {
+        ImageLoader imgObj = new ImageLoader();
+        largeImage.sprite = imgObj.LoadImageFromServer(selectedImageIndex);
     }
 }
