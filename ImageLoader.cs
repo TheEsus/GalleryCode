@@ -7,87 +7,105 @@ using UnityEngine.UI;
 
 public class ImageLoader : MonoBehaviour
 {
-    [SerializeField] public GameObject imagePrefab;
+    //[SerializeField] public Image imagePrefab;
     
     [SerializeField] public Image image;
     private Transform imageContainer;
-    public Image[] imageMas = new Image[66];
     public List<Image> imageList;
-    private string imageLink = "http://data.ikppbb.com/test-task-unity-data/pics/";
+    [SerializeField] public static string imageLink = "http://data.ikppbb.com/test-task-unity-data/pics/";
     private int numberToCreate;
     
     void Start()
     {
-            
-        StartCoroutine(LoadImage());
-        StopCoroutine(LoadImage());
-        
+        StartCoroutine(imageVisualization());
     }
 
-    private IEnumerator LoadImage(){
-        imageList = (List<Image>)LoadImageFromServer();
+    private IEnumerator imageVisualization(){
+
+        imageList = CreateListImage();
+
         for(int index = 0; index < imageList.Count; index++){
-            GameObject newImage = Instantiate(imagePrefab, imageContainer);
-            newImage.GetComponent<Image>().sprite = imageList[index].sprite;
+            image = Instantiate(image, imageContainer);
+            //newImage.GetComponent<Image>().sprite = imageList[index].sprite;
+            image.sprite = imageList[index].sprite;
         }
+
+        Debug.Log("I create Object and get component 'Sprite'");
 
         yield return new WaitForEndOfFrame();
 
         ScrollRect scrollRect = GetComponentInChildren<ScrollRect>();
-        scrollRect.content.sizeDelta = new Vector2(0, imageContainer.childCount * imagePrefab.GetComponent<RectTransform>().rect.height);
 
+        scrollRect.content.sizeDelta = new Vector2(
+            0, 
+            imageContainer.childCount * image.GetComponent<RectTransform>().rect.height);
+
+        Debug.Log("I create config to scroll");
         
         for (int i = 0; i < imageContainer.childCount; i++)
         {
             int index = i;
-            imageContainer.GetChild(i).GetComponent<Button>().onClick.AddListener(() => OpenImage(index));
+            imageContainer.GetChild(i).GetComponent<Button>().onClick.AddListener(() => ShowImage(index));
         }
+
+        Debug.Log("I create onClick component");
     }
 
-    private void OpenImage(int index)
+    private void ShowImage(int index)
     {
         // Передаем индекс выбранного изображения для отображения на Сцене 3
-        //OpenImage.selectedImageIndex = index;
-        //SceneManager.LoadScene("Photo");
+        OpenImage.selectedImageIndex = index;
+        SceneManager.LoadScene("Photo");
     }
 
-    private UnityWebRequest RequestServer(string ImgaeLink){
-        UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageLink);
-        //yield return request.SendWebRequest(); 
-        return request;
-    }
-    private List<Image> LoadImageFromServer(){
-        numberToCreate = 2;
-        for(int i = 1; i <=numberToCreate; ++i ){
-            //UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageLink + $"{i}.jpg");
-            //yield return request.SendWebRequest();
-            var request = RequestServer(imageLink + $"{i}.jpg");
-            request.SendWebRequest();
 
-            if(request.isNetworkError || request.isHttpError){
-                Debug.Log("Произошла ошибка " + request.error);
-                break;
-            }
-            else{
-                Debug.Log("No Error");
-                //image = Instantiate(image, transform);
-                //image.name = $"Image {i}";
-                Texture2D myTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-            
-                Sprite newSprite = Sprite.Create(
-                    myTexture, 
-                    new Rect(0, 0, myTexture.width, myTexture.height),
-                    new Vector2(0.5f, 0.5f));
-                
-                image.sprite = newSprite;
-                imageList.Add(image);
-            }
+    public Sprite LoadImageFromServer(int index){
+
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageLink + $"{index}.jpg");
+        request.SendWebRequest();
+
+        Debug.Log("I will create request");
+        
+        if(request.isNetworkError || request.isHttpError)
+        {
+            Debug.Log("Произошла ошибка " + request.error);
             request.Dispose();
-            
-            numberToCreate += 2;
+            return null;
         }
-        return imageList;
+        else
+        {
+            Debug.Log("No Error");
+            //image = Instantiate(image, transform);
+            //image.name = $"Image {i}";
+            Debug.Log("Star dowload texture");
+
+            Texture2D myTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+            Debug.Log("Finish dowload texture");
+
+            Debug.Log("Star create sprite");
+            Sprite newSprite = Sprite.Create(
+                myTexture, 
+                new Rect(0, 0, myTexture.width, myTexture.height),
+                new Vector2(0.5f, 0.5f)
+                );
+            Debug.Log("I finish request");
+            return (Sprite)newSprite;
+        }
+    
         
     }
 
+    private List<Image> CreateListImage(){
+        List<Image> tempImageList = new List<Image>();
+        Debug.Log("I will create List");
+        numberToCreate = 2;
+        for(int i = 1; i <=numberToCreate; ++i )
+        {
+            image.sprite = LoadImageFromServer(i);
+            tempImageList.Add(image);
+        }
+            numberToCreate += 2;
+        Debug.Log("I finish create List");
+        return tempImageList;
+    }
 }
